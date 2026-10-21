@@ -17,6 +17,10 @@ classifiers = [
   "Programming Language :: Python :: 3",
 ]
 
+[project.urls]
+Repository = "https://github.com/Code4me2/media-intake"
+Issues = "https://github.com/Code4me2/media-intake/issues"
+
 [project.optional-dependencies]
 tooling = ["yt-dlp"]
 dev = ["pytest>=8"]

@@ -1,4 +1,7 @@
-# media-intake-local
+# Media Intake
+
+**Canonical repository:** [Code4me2/media-intake](https://github.com/Code4me2/media-intake).
+This repository is initially private; cloning requires authorized GitHub access.
 
 A small, extractable Python package for policy-driven YouTube metadata inspection,
 media acquisition, caption acquisition, and coordinated batch intake. The
@@ -6,21 +9,40 @@ media acquisition, caption acquisition, and coordinated batch intake. The
 index availability is claimed. The import and command names are `media_intake`
 and `media-intake`.
 
-The package is independent of the parent research application. It has no NumPy
-or PyYAML dependency and does not import `latent_timing_duplex`. Copying this
-directory elsewhere is sufficient to build, test, or install it.
+This is the standalone source of truth for acquisition, extracted with Git
+subtree history from `latent-timing-duplex/packages/media-intake`. It has no
+NumPy or PyYAML dependency and does not import `latent_timing_duplex`.
+
+The research application keeps a commit-pinned vendored snapshot so its public
+builds do not require credentials for this private repository. Make acquisition
+changes here, then explicitly update the downstream snapshot. Research policies,
+channel audits, annotation and analysis remain in the research application.
 
 ## Install and reproduce the Python environment
 
 Core import has no third-party runtime dependency:
 
 ```bash
-cd packages/media-intake
+git clone ssh://git@github.com/Code4me2/media-intake.git
+cd media-intake
 uv sync --locked --extra dev
-uv run pytest
+uv run --locked python -m pytest
 uv build
-# or: python -m pip install .
+# or, from an existing checkout: python -m pip install .
 ```
+
+For an application that does not use uv, install this checkout or the built
+wheel in that application's environment:
+
+```bash
+python -m pip install /path/to/media-intake
+# Or distribute the wheel to an authorized application:
+python -m pip install /path/to/media-intake/dist/*.whl
+```
+
+Pin a reviewed commit when consuming from Git; no package-index release is
+required. The package keeps the distribution name `media-intake-local` to avoid
+breaking existing locks and consumers. `import media_intake` stays unchanged.
 
 Install the optional upstream Python tool in an isolated environment with:
 
@@ -187,9 +209,10 @@ subprocesses use `shell=False`, and network/process timeouts and retries are
 bounded. Both standalone and compatibility CLIs use the same per-root lock,
 which supports POSIX `flock` and Windows `msvcrt.locking`.
 
-## Migrating the parent application's old CLI
+## Downstream research integration
 
-The parent repository still supports:
+These commands belong to the separate `latent-timing-duplex` research checkout,
+not this repository:
 
 ```bash
 python -m latent_timing_duplex.data.podcasts --sources configs/podcast_sources.json
@@ -202,6 +225,26 @@ preserve legacy root artifact names, `acquisition-runs/` layout and
 `podcast-*-receipt/v1` integrity checks, and add project-only permission and
 pilot-eligibility fields. New generic configurations use
 `media-intake-sources/v1` as shown in `examples/sources.json`.
+
+## Development and testing
+
+Acquisition code belongs in `src/media_intake/`; adapters, policy models,
+provenance, orchestration, locking and CLI have separate modules. Tests use
+injected offline adapters and never need YouTube access or media downloads.
+
+```bash
+uv sync --locked --extra dev
+uv run --locked python -m pytest
+uv build
+```
+
+GitHub Actions tests Python 3.10, 3.12 and 3.13 on Linux, builds the source
+archive and wheel, and installs the wheel outside the checkout. Python API/CLI
+import checks do not require FFmpeg or yt-dlp. Optional external tooling remains
+separately installed. CI does not publish packages or run live downloads.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development boundary and downstream
+update policy.
 
 ## Known limits
 
